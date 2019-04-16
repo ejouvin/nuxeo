@@ -86,7 +86,7 @@ public class BaseTest {
         return "http://localhost:" + port;
     }
 
-    protected String getRestApiUrl () {
+    protected String getRestApiUrl() {
         return getBaseURL() + "/api/v1/";
     }
 
@@ -219,9 +219,9 @@ public class BaseTest {
     }
 
     /**
-     * @param get
-     * @param string
-     * @param queryParamsForPage
+     * @param responseType the response type
+     * @param url the resource url
+     * @param queryParams que query parameters
      * @return
      * @throws IOException
      * @throws JsonProcessingException
@@ -276,9 +276,7 @@ public class BaseTest {
     }
 
     protected void assertEntityEqualsDoc(InputStream in, DocumentModel doc) throws Exception {
-
         JsonNode node = mapper.readTree(in);
         assertNodeEqualsDoc(node, doc);
-
     }
 }
