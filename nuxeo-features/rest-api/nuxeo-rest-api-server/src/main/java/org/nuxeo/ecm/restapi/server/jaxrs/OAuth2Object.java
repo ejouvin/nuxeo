@@ -38,6 +38,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -377,6 +378,60 @@ public class OAuth2Object extends AbstractResource<ResourceTypeImpl> {
     public Response getClient(@PathParam("clientId") String clientId, @Context HttpServletRequest request) {
         OAuth2Client client = getClient(clientId);
         return Response.ok(client).build();
+    }
+
+    /**
+     * Create a new oauth2 client.
+     *
+     * @param request the http request
+     * @param client the oAuth2Client to create
+     * @return the {@link Response}
+     * @since 11.1
+     */
+    @POST
+    @Path("client")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response createClient(@Context HttpServletRequest request, OAuth2Client client) {
+        checkPermission(null);
+        OAuth2Client oAuth2Client = Framework.getService(OAuth2ClientService.class).create(client);
+        return Response.status(Status.CREATED).entity(oAuth2Client).build();
+    }
+
+    /**
+     * Update the oauth2 client.
+     * 
+     * @param clientId the oAuth2 client id to update
+     * @param request the http request
+     * @param client the oAuth2Client to update
+     * @return the {@link Response}
+     * @since 11.1
+     */
+    @PUT
+    @Path("client/{clientId}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateClient(@PathParam("clientId") String clientId, @Context HttpServletRequest request,
+            OAuth2Client client) {
+        checkPermission(null);
+        OAuth2Client oAuth2Client = Framework.getService(OAuth2ClientService.class).update(clientId, client);
+        return Response.ok(oAuth2Client).build();
+    }
+
+    /**
+     * Delete the oauth2 client.
+     *
+     * @param clientId the oAuth2 client id to delete
+     * @param request the http request
+     * @return the {@link Response}
+     * @since 11.1
+     */
+    @DELETE
+    @Path("client/{clientId}")
+    public Response deleteClient(@PathParam("clientId") String clientId, @Context HttpServletRequest request) {
+        checkPermission(null);
+        Framework.getService(OAuth2ClientService.class).delete(clientId);
+        return Response.noContent().build();
     }
 
     protected List<NuxeoOAuth2ServiceProvider> getProviders() {

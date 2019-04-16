@@ -18,16 +18,22 @@
  */
 package org.nuxeo.ecm.platform.oauth2.clients;
 
+import static java.util.Objects.requireNonNull;
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static org.nuxeo.ecm.platform.oauth2.clients.OAuth2ClientService.OAUTH2CLIENT_SCHEMA;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.core.api.NuxeoException;
+import org.nuxeo.ecm.directory.BaseSession;
 
 /**
  * @author <a href="mailto:ak@nuxeo.com">Arnaud Kervern</a>
@@ -35,7 +41,24 @@ import org.nuxeo.ecm.core.api.DocumentModel;
  */
 public class OAuth2Client {
 
+    public static final String NAME_FIELD = "name";
+
+    public static final String ID_FIELD = "clientId";
+
+    public static final String SECRET_FIELD = "clientSecret";
+
+    public static final String REDIRECT_URI_FIELD = "redirectURIs";
+
+    public static final String AUTO_GRANT_FIELD = "autoGrant";
+
+    public static final String ENABLED_FIELD = "enabled";
+
     protected static final Pattern LOCALHOST_PATTERN = Pattern.compile("http://localhost(:\\d+)?(/.*)?");
+
+    /**
+     * @since 11.1
+     */
+    public static final String REDIRECT_URI_SEPARATOR = ",";
 
     protected String name;
 
@@ -94,6 +117,13 @@ public class OAuth2Client {
         return enabled;
     }
 
+    /**
+     * @since 11.1
+     */
+    public String getSecret() {
+        return secret;
+    }
+
     public static OAuth2Client fromDocumentModel(DocumentModel doc) {
         String name = (String) doc.getPropertyValue(OAUTH2CLIENT_SCHEMA + ":name");
         String id = (String) doc.getPropertyValue(OAUTH2CLIENT_SCHEMA + ":clientId");
@@ -133,6 +163,74 @@ public class OAuth2Client {
     public boolean isValidWith(String clientId, String clientSecret) {
         // Related to RFC 6749 2.3.1 clientSecret is omitted if empty
         return enabled && id.equals(clientId) && (StringUtils.isEmpty(secret) || secret.equals(clientSecret));
+    }
+
+    /**
+     * Create {@link DocumentModel} from {@link OAuth2Client}.
+     *
+     * @param oAuth2Client the oAuth2Client to convert
+     * @return the corresponding {@code DocumentModel} of {@code OAuth2Client}
+     * @since 11.1
+     */
+    public static DocumentModel fromOAuth2Client(OAuth2Client oAuth2Client) {
+        return BaseSession.createEntryModel(null, OAUTH2CLIENT_SCHEMA, null, getDocumentData(oAuth2Client));
+    }
+
+    /**
+     * Update {@link DocumentModel} by {@link OAuth2Client}.
+     * 
+     * @param documentModel the document model to update
+     * @param oAuth2Client the new values of document
+     * @return the updated {@code DocumentModel}
+     */
+    public static DocumentModel updateDocument(DocumentModel documentModel, OAuth2Client oAuth2Client) {
+        requireNonNull(documentModel, "documentModel model is required");
+        requireNonNull(oAuth2Client, "oAuth2Client model is required");
+        documentModel.setProperties(OAUTH2CLIENT_SCHEMA, OAuth2Client.getDocumentData(oAuth2Client));
+        return documentModel;
+    }
+
+    /**
+     * Get document properties from {@link OAuth2Client}.
+     *
+     * @param oAuth2Client the oAuth2Client
+     * @return the {@code Map} structure of {@code OAuth2Client}
+     * @since 11.1
+     */
+    protected static Map<String, Object> getDocumentData(OAuth2Client oAuth2Client) {
+        validate(oAuth2Client);
+        Map<String, Object> values = new HashMap<>();
+        values.put(NAME_FIELD, oAuth2Client.getName());
+        values.put(ID_FIELD, oAuth2Client.getId());
+        values.put(REDIRECT_URI_FIELD, StringUtils.join(oAuth2Client.getRedirectURIs(), REDIRECT_URI_SEPARATOR));
+        values.put(AUTO_GRANT_FIELD, oAuth2Client.isAutoGrant());
+        values.put(ENABLED_FIELD, oAuth2Client.isEnabled());
+        if (StringUtils.isNotEmpty(oAuth2Client.getSecret())) {
+            values.put(SECRET_FIELD, oAuth2Client.getSecret());
+        }
+        return values;
+    }
+
+    /**
+     * Validate the {@link OAuth2Client}. An {@link OAuth2Client} is valid if his required fields are not empty.
+     *
+     * @param oAuth2Client the oAuth2Client to validate
+     * @throws NuxeoException if oAuth2Client is not valid
+     * @since 11.1
+     */
+    public static void validate(OAuth2Client oAuth2Client) {
+        String message = null;
+        if (StringUtils.isEmpty(oAuth2Client.getName())) {
+            message = "Client name";
+        } else if (StringUtils.isEmpty(oAuth2Client.getId())) {
+            message = "Client Id";
+        } else if (oAuth2Client.getRedirectURIs().isEmpty()) {
+            message = "Redirect URIs";
+        }
+
+        if (StringUtils.isNotEmpty(message)) {
+            throw new NuxeoException(String.format("%s is required", message), SC_BAD_REQUEST);
+        }
     }
 
     /**

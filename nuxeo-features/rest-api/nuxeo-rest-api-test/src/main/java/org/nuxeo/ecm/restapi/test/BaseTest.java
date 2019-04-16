@@ -270,7 +270,7 @@ public class BaseTest {
      * @since 7.1
      */
     protected String getErrorMessage(JsonNode node) {
-        assertEquals("exception", node.get("entity-type").asText());
+        assertTrue(hasErrorMessage(node));
         assertTrue(node.get("message").isTextual());
         return node.get("message").asText();
     }
@@ -278,5 +278,12 @@ public class BaseTest {
     protected void assertEntityEqualsDoc(InputStream in, DocumentModel doc) throws Exception {
         JsonNode node = mapper.readTree(in);
         assertNodeEqualsDoc(node, doc);
+    }
+
+    /**
+     * @since 11.1
+     */
+    protected boolean hasErrorMessage(JsonNode node) {
+        return node.get("entity-type").asText().equals("exception");
     }
 }

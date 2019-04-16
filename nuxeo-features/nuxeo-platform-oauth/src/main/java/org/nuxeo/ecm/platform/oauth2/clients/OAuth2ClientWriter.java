@@ -20,6 +20,8 @@ package org.nuxeo.ecm.platform.oauth2.clients;
 
 import static org.nuxeo.ecm.core.io.registry.reflect.Instantiations.SINGLETON;
 import static org.nuxeo.ecm.core.io.registry.reflect.Priorities.REFERENCE;
+import static org.nuxeo.ecm.platform.oauth2.clients.OAuth2Client.NAME_FIELD;
+import static org.nuxeo.ecm.platform.oauth2.clients.OAuth2Client.REDIRECT_URI_FIELD;
 
 import java.io.IOException;
 
@@ -42,8 +44,15 @@ public class OAuth2ClientWriter extends ExtensibleEntityJsonWriter<OAuth2Client>
 
     @Override
     protected void writeEntityBody(OAuth2Client client, JsonGenerator jg) throws IOException {
+        jg.writeStringField(NAME_FIELD, client.getName());
+        jg.writeArrayFieldStart(REDIRECT_URI_FIELD);
+        for (String url : client.getRedirectURIs()) {
+            jg.writeString(url);
+        }
+        jg.writeEndArray();
+        jg.writeStringField("secret", client.getSecret());
         jg.writeStringField("id", client.getId());
-        jg.writeStringField("name", client.getName());
+        jg.writeBooleanField("isAutoGrant", client.isAutoGrant());
         jg.writeBooleanField("isEnabled", client.isEnabled());
     }
 }

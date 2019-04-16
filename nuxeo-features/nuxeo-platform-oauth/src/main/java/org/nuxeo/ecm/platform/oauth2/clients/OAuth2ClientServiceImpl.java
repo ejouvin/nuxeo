@@ -18,10 +18,16 @@
  */
 package org.nuxeo.ecm.platform.oauth2.clients;
 
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -66,6 +72,44 @@ public class OAuth2ClientServiceImpl extends DefaultComponent implements OAuth2C
         return queryClients().stream().map(OAuth2Client::fromDocumentModel).collect(Collectors.toList());
     }
 
+    @Override
+    public OAuth2Client create(OAuth2Client oAuth2Client) {
+        Objects.requireNonNull(oAuth2Client, "oAuth2Client is required");
+        if (getClientModel(oAuth2Client.getId()) != null) {
+            throw new NuxeoException(String.format("Client with id '%s' already exist", oAuth2Client.getId()),
+                    SC_BAD_REQUEST);
+        }
+
+        return execute((session) -> {
+            DocumentModel documentModel = OAuth2Client.fromOAuth2Client(oAuth2Client);
+            return OAuth2Client.fromDocumentModel(Framework.doPrivileged(() -> session.createEntry(documentModel)));
+        });
+    }
+
+    @Override
+    public OAuth2Client update(String clientId, OAuth2Client oAuth2Client) {
+        return execute((session) -> {
+            Optional<DocumentModel> optional = Optional.ofNullable(getClientModel(clientId));
+            return optional.map((doc) -> {
+                OAuth2Client.updateDocument(doc, oAuth2Client);
+                Framework.doPrivileged(() -> session.updateEntry(doc));
+                return OAuth2Client.fromDocumentModel(doc);
+            }).orElseThrow(() -> new NuxeoException(SC_NOT_FOUND));
+        });
+    }
+
+    @Override
+    public void delete(String clientId) {
+        execute((session) -> {
+            Optional<DocumentModel> optional = Optional.ofNullable(getClientModel(clientId));
+            Framework.doPrivileged(() -> {
+                DocumentModel document = optional.orElseThrow(() -> new NuxeoException(SC_NOT_FOUND));
+                session.deleteEntry(document);
+            });
+            return null;
+        });
+    }
+
     protected DocumentModel getClientModel(String clientId) {
         DirectoryService service = Framework.getService(DirectoryService.class);
         return Framework.doPrivileged(() -> {
@@ -92,5 +136,17 @@ public class OAuth2ClientServiceImpl extends DefaultComponent implements OAuth2C
                 throw new NuxeoException("Error while fetching client directory", e);
             }
         });
+    }
+
+    /**
+     * @since 11.1
+     */
+    protected OAuth2Client execute(Function<Session, OAuth2Client> function) {
+        DirectoryService service = Framework.getService(DirectoryService.class);
+        try (Session session = service.open(OAUTH2CLIENT_DIRECTORY_NAME)) {
+            return function.apply(session);
+        } catch (DirectoryException e) {
+            throw new NuxeoException("Error while fetching client directory", e);
+        }
     }
 }
