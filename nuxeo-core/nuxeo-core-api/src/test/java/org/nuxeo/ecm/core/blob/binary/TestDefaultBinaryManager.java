@@ -23,6 +23,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeFalse;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -32,6 +33,7 @@ import java.util.Collections;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
@@ -182,6 +184,7 @@ public class TestDefaultBinaryManager {
 
     @Test
     public void testPathDotDot() throws IOException {
+        assumeFalse(SystemUtils.IS_OS_WINDOWS);
         // make sure the "binaries" base path doesn't exist
         File oldbinaries = new File(Environment.getDefault().getData(), "binaries");
         FileUtils.deleteDirectory(oldbinaries);
