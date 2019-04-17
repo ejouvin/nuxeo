@@ -71,9 +71,10 @@ public abstract class AbstractCSVWriter<T> implements Writer<T> {
     @Override
     public void write(T entity, Class<?> clazz, Type genericType, MediaType mediatype, OutputStream out)
             throws IOException {
-        CSVPrinter printer = getCSVPrinter(entity, out);
-        write(entity, printer);
-        printer.flush();
+        try (CSVPrinter printer = getCSVPrinter(entity, out)) {
+            write(entity, printer);
+            printer.flush();
+        }
     }
 
     protected abstract void write(T entity, CSVPrinter printer) throws IOException;
