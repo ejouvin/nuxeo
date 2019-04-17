@@ -78,11 +78,6 @@
       <artifactId>xstream</artifactId>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>xpp3</groupId>
-      <artifactId>xpp3</artifactId>
-      <classifier>clean</classifier>
-    </dependency>
   </dependencies>
 
 </project>
