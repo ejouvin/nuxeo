@@ -77,11 +77,6 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.apache.directory.server</groupId>
-      <artifactId>apacheds-bootstrap-partition</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <scope>test</scope>

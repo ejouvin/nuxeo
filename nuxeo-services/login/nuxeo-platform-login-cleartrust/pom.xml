@@ -14,16 +14,14 @@
     <dependency>
       <groupId>org.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-platform-ui-web</artifactId>
-      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-platform-web-common</artifactId>
     </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>javax.servlet.jsp</groupId>
-      <artifactId>jsp-api</artifactId>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>commons-logging</groupId>
@@ -31,28 +29,4 @@
       <scope>provided</scope>
     </dependency>
   </dependencies>
-
-  <!-- <build> -->
-  <!-- <plugins> -->
-  <!-- <plugin> -->
-  <!-- <groupId>org.apache.maven.plugins</groupId> -->
-  <!-- <artifactId>maven-jar-plugin</artifactId> -->
-  <!-- <version>2.2</version> -->
-  <!-- <configuration> -->
-  <!-- <archive> -->
-  <!-- <manifestFile> -->
-  <!-- src/main/resources/META-INF/MANIFEST.MF -->
-  <!-- </manifestFile> -->
-  <!-- <manifestEntries> -->
-  <!-- <Bundle-Version>${eclipseVersion}</Bundle-Version> -->
-  <!-- <Bundle-ManifestVersion>2</Bundle-ManifestVersion> -->
-  <!-- </manifestEntries> -->
-  <!-- </archive> -->
-  <!-- <includes> -->
-  <!-- <include>**/Sample/*</include> -->
-  <!-- </includes> -->
-  <!-- </configuration> -->
-  <!-- </plugin> -->
-  <!-- </plugins> -->
-  <!-- </build> -->
 </project>
