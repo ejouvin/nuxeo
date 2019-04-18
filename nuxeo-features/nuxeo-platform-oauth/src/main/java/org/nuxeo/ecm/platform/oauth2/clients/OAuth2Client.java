@@ -23,7 +23,6 @@ import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static org.nuxeo.ecm.platform.oauth2.clients.OAuth2ClientService.OAUTH2CLIENT_SCHEMA;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +30,8 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.directory.BaseSession;
@@ -125,19 +126,14 @@ public class OAuth2Client {
     }
 
     public static OAuth2Client fromDocumentModel(DocumentModel doc) {
-        String name = (String) doc.getPropertyValue(OAUTH2CLIENT_SCHEMA + ":name");
-        String id = (String) doc.getPropertyValue(OAUTH2CLIENT_SCHEMA + ":clientId");
-        String secret = (String) doc.getPropertyValue(OAUTH2CLIENT_SCHEMA + ":clientSecret");
-        List<String> redirectURIs;
-        String redirectURIsProperty = (String) doc.getPropertyValue(OAUTH2CLIENT_SCHEMA + ":redirectURIs");
-        if (StringUtils.isEmpty(redirectURIsProperty)) {
-            redirectURIs = Collections.emptyList();
-        } else {
-            redirectURIs = Arrays.asList(redirectURIsProperty.split(","));
-        }
-        boolean autoGrant = (Boolean) Optional.ofNullable(doc.getPropertyValue(OAUTH2CLIENT_SCHEMA + ":autoGrant"))
-                                              .orElse(false);
-        boolean enabled = (Boolean) doc.getPropertyValue(OAUTH2CLIENT_SCHEMA + ":enabled");
+        String name = getProperty(doc, NAME_FIELD, String.class).get();
+        String id = getProperty(doc, ID_FIELD, String.class).get();
+        boolean autoGrant = getProperty(doc, AUTO_GRANT_FIELD, Boolean.class).get();
+        boolean enabled = getProperty(doc, ENABLED_FIELD, Boolean.class).get();
+        String secret = getProperty(doc, SECRET_FIELD, String.class).orElse(null);
+
+        String redirectURIsProperty = getProperty(doc, REDIRECT_URI_FIELD, String.class).get();
+        List<String> redirectURIs = Arrays.asList(StringUtils.split(redirectURIsProperty, REDIRECT_URI_SEPARATOR));
 
         return new OAuth2Client(name, id, secret, redirectURIs, autoGrant, enabled);
     }
@@ -234,11 +230,30 @@ public class OAuth2Client {
     }
 
     /**
+     * Get the property value of oAuth2Client from a document model.
+     *
+     * @param doc the document model
+     * @param name the name of the property
+     * @param clazz the type of the property
+     * @return an {@code Optional} with a present value if the specified value is non-{@code null}, otherwise an empty
+     *         {@code Optional}
+     * @since 11.1
+     */
+    public static <T> Optional<T> getProperty(DocumentModel doc, String name, Class<T> clazz) {
+        return Optional.ofNullable(doc.getProperty(OAUTH2CLIENT_SCHEMA, name)).map(clazz::cast);
+    }
+
+    /**
      * @since 9.2
      */
     @Override
     public String toString() {
-        return String.format("%s(name=%s, id=%s, redirectURIs=%s, autoGrant=%b, enabled=%b)",
-                getClass().getSimpleName(), name, id, redirectURIs, autoGrant, enabled);
+        ToStringBuilder builder = new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE);
+        return builder.append("name", name)
+                      .append("id", id)
+                      .append("redirectURIs", redirectURIs)
+                      .append("autoGrant", autoGrant)
+                      .append("enabled", enabled)
+                      .toString();
     }
 }
