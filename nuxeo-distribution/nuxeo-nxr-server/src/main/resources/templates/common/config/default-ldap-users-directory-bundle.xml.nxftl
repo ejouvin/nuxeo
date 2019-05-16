@@ -340,7 +340,9 @@
     <userManager>
       <userCacheName>default-cache</userCacheName>
 <#if "${nuxeo.ldap.defaultAdministratorId}" != "">
-      <defaultAdministratorId>${nuxeo.ldap.defaultAdministratorId}</defaultAdministratorId>
+<#list "${nuxeo.ldap.defaultAdministratorId}"?split("|") as administratorId>
+      <defaultAdministratorId>${administratorId}</defaultAdministratorId>
+</#list>
 </#if>
 <#if "${nuxeo.ldap.defaultMembersGroup}" != "">
       <defaultGroup>${nuxeo.ldap.defaultMembersGroup}</defaultGroup>
